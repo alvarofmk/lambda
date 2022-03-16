@@ -110,7 +110,7 @@ public class Principal {
 		 * subvenciones:
 		 */
 		
-		Predicate <Cliente> testerSubvencionParo = (c) -> c.getAniosEnParo() > 1;
+		Predicate <Cliente> testerSubvencionParo = (c) -> c.isEnParo() && c.getAniosEnParo() > 1;
 		
 		/*
 		 * Lo primero que se pone es la interfaz que hemos escogido, es decir, el tipo (Predicate)
@@ -173,77 +173,121 @@ public class Principal {
 		// También podemos usar || para decir que se cumpla una u otra condicion para que sea verdadero.
 		Predicate <Cliente> testerSubvencionViejos = (c) -> c.getEdad() > 30 || c.getNombre().equalsIgnoreCase("Durban");
 		
-		/*
-		 * Vamos a hacer ahora el resto del programa
-		 */
+		// Vamos a hacer ahora el resto del programa
 		
 		int menu = 0, edad, hermanos, aux, aniosEnParo, menuSubvenciones;
 		String nombre, telefono;
 		double nomina;
 		boolean enParo;
-		Cliente clienteAuxiliar;
+		Cliente clienteAuxiliar = null;
 		ControllerCliente control = new ControllerCliente();
 		
-		System.out.println("Bienvenido al programa de gestion de subvenciones del SEPE");
-		System.out.println("1. Agregar nuevo cliente");
-		System.out.println("2. Comprobar requisitos de un cliente para una subvencion");
-		System.out.println("3. Mostrar a qué subvenciones tiene derecho un cliente");
-		System.out.println("4. Mostrar qué clientes tienen derecho a una subvención");
-		menu=Leer.datoInt();
-		switch (menu) {
-			case 1:
-				nombre = Leer.dato();
-				telefono = Leer.dato();
-				edad = Leer.datoInt();
-				hermanos = Leer.datoInt();
-				System.out.println("Puelse 1 si está en el paro. 0 si no.");
-				aux = Leer.datoInt();
-				enParo = intToBoolean(aux);
-				if(enParo) {
-					aniosEnParo = Leer.datoInt();
-				}else {
-					aniosEnParo = 0;
-				}
-				nomina = Leer.datoDouble();
-				
-				sepe.agregarCliente(new Cliente(nombre, telefono, edad, hermanos, enParo, aniosEnParo, nomina));
-				break;
-			case 2:
-				/*
-				 * En este caso del switch vamos a utilizar por primera vez los distintos Predicate que hemos
-				 * creado. Para ello, aqui le preguntamos el nombre del cliente que queremos comprobar al usuario
-				 * para poder buscarlo en la lista.
-				 */
-				System.out.println("Indique el nombre del cliente");
-				nombre = Leer.dato();
-				clienteAuxiliar = sepe.encontrarPorNombre(nombre);
-				
-				/*
-				 * Y despues dejamos que elija que subvención quiere comprobar con un pequeño menú, segun lo que
-				 * pulse, dentro del switch llamaremos al mismo método (se encuentra en controller), al que le pasamos
-				 * un tester y un cliente, y si el resultado del testeo es positivo muestra un resultado, y sino, otro
-				 */
-				menuSubvenciones();
-				menuSubvenciones = Leer.datoInt();
-				switch (menuSubvenciones) {
-					case 1:
-						control.mostrarUnaPrestacion(testerSubvencionParo, clienteAuxiliar);
-						break;
-					case 2:
-						control.mostrarUnaPrestacion(testerSubvencionFamiliar, clienteAuxiliar);
-						break;
-					case 3:
-						control.mostrarUnaPrestacion(testerSubvencionRicos, clienteAuxiliar);
-						break;
-					case 4:
-						control.mostrarUnaPrestacion(testerSubvencionViejos, clienteAuxiliar);
-						break;
-					default:
-						break;
-				}
-			default:
-				break;
-		}
+		do {
+			
+			System.out.println("\nBienvenido al programa de gestion de subvenciones del SEPE");
+			System.out.println("1. Agregar nuevo cliente");
+			System.out.println("2. Comprobar requisitos de un cliente para una subvencion");
+			System.out.println("3. Mostrar qué clientes tienen derecho a una subvención");
+			System.out.println("4. Mostrar todos los clientes");
+			menu=Leer.datoInt();
+			switch (menu) {
+				case 1:
+					System.out.println("Introduzca el nombre del cliente:");
+					nombre = Leer.dato();
+					System.out.println("Introduzca el telefono del cliente:");
+					telefono = Leer.dato();
+					System.out.println("Introduzca la edad del cliente:");
+					edad = Leer.datoInt();
+					System.out.println("Introduzca el numero de hermanos que tien el cliente:");
+					hermanos = Leer.datoInt();
+					System.out.println("Pulse 1 si está en el paro. 0 si no.");
+					aux = Leer.datoInt();
+					enParo = intToBoolean(aux);
+					if(enParo) {
+						System.out.println("¿Cuántos años lleva en paro?");
+						aniosEnParo = Leer.datoInt();
+					}else {
+						aniosEnParo = 0;
+					}
+					System.out.println("Especifique la última nómina cobrada por el cliente:");
+					nomina = Leer.datoDouble();
+					
+					sepe.agregarCliente(new Cliente(nombre, telefono, edad, hermanos, enParo, aniosEnParo, nomina));
+					break;
+				case 2:
+					/*
+					 * En este caso del switch vamos a utilizar por primera vez los distintos Predicate que hemos
+					 * creado. Para ello, aqui le preguntamos el nombre del cliente que queremos comprobar al usuario
+					 * para poder buscarlo en la lista.
+					 */
+					System.out.println("Indique el nombre del cliente");
+					nombre = Leer.dato();
+					clienteAuxiliar = sepe.encontrarPorNombre(nombre);
+					
+					if(clienteAuxiliar!=null) {
+						/*
+						 * Y despues dejamos que elija que subvención quiere comprobar con un pequeño menú, segun lo que
+						 * pulse, dentro del switch llamaremos al mismo método (se encuentra en controller), al que le pasamos
+						 * un tester y un cliente.
+						 * 
+						 * Puedes encontrar la explicación del método en controller.
+						 */
+						menuSubvenciones();
+						menuSubvenciones = Leer.datoInt();
+						switch (menuSubvenciones) {
+							case 1:
+								control.mostrarUnaPrestacion(testerSubvencionParo, clienteAuxiliar);
+								break;
+							case 2:
+								control.mostrarUnaPrestacion(testerSubvencionFamiliar, clienteAuxiliar);
+								break;
+							case 3:
+								control.mostrarUnaPrestacion(testerSubvencionRicos, clienteAuxiliar);
+								break;
+							case 4:
+								control.mostrarUnaPrestacion(testerSubvencionViejos, clienteAuxiliar);
+								break;
+							default:
+								System.out.println("Opcion inválida.");
+								break;
+						}
+					}else {
+						System.out.println("No se ha encontrado al cliente");
+					}
+					
+					break;
+				case 3:
+					menuSubvenciones();
+					menuSubvenciones = Leer.datoInt();
+					switch (menuSubvenciones) {
+						case 1:
+							control.mostrarClientesAptos(control.comprobarClientesAptos(testerSubvencionParo, sepe));
+							break;
+						case 2:
+							control.mostrarClientesAptos(control.comprobarClientesAptos(testerSubvencionFamiliar, sepe));
+							break;
+						case 3:
+							control.mostrarClientesAptos(control.comprobarClientesAptos(testerSubvencionRicos, sepe));
+							break;
+						case 4:
+							control.mostrarClientesAptos(control.comprobarClientesAptos(testerSubvencionViejos, sepe));
+							break;
+						default:
+							System.out.println("Opcion inválida.");
+							break;
+					}
+					break;
+				case 4:
+					control.mostrarClientes(sepe);
+					break;
+				default:
+					System.out.println("Opcion inválida.");
+					break;
+			}
+			
+		}while(menu!=0);
+		
+		
 		
 
 	}

@@ -80,5 +80,16 @@ public class ControllerCliente {
 			System.out.println(cliente);
 		}
 	}
+	
+	public void precargarClientes(CRUDcliente control) {
+		control.getMiembros().add(new Cliente("Francisco", "665 564 398", 66, 2, true, 7, 1100));
+		control.getMiembros().add(new Cliente("Pablo", "665 482 622", 27, 2, false, 0, 1000));
+		control.getMiembros().add(new Cliente("Andrea", "688 945 378", 34, 1, true, 1, 1700));
+		control.getMiembros().add(new Cliente("Yolanda", "744 372 987", 22, 6, false, 0, 750));
+		control.getMiembros().add(new Cliente("Jesús", "656 472 657", 30, 0, false, 0, 900));
+		control.getMiembros().add(new Cliente("Putin", "888 888 888", 46, 0, false, 0, 40000000));
+		control.getMiembros().add(new Cliente("Alvaro", "622 438 699", 26, 2, true, 2, 600));
+		control.getMiembros().add(new Cliente("Alejandro", "632 829 115", 31, 1, true, 3, 1000));
+	}
 
 }

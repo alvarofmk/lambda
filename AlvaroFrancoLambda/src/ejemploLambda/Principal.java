@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import ejemplosnolambda.Icomprobador;
 import utilidad.Leer;
 
 public class Principal {
@@ -38,41 +39,41 @@ public class Principal {
 
 	public static void main(String[] args) {
 
-		/*
-		 * Lo primero que vamos a hacer es crear las clases que nos hacen falta para el ejemplo.
-		 * Una vez hecho eso, creamos unos cuantos clientes y los añadimos a la lista para tener
-		 * con lo que probar los métodos que vamos a crear con las expresiones lambda.
-		 */
+		//  Lo primero que vamos a hacer es crear las clases que nos hacen falta para el ejemplo.
 		
 		List <Cliente> miembros = new ArrayList <Cliente> ();
-		miembros.add(new Cliente("Francisco", "665 564 398", 66, 2, true, 7, 1100));
-		miembros.add(new Cliente("Pablo", "665 482 622", 27, 2, false, 0, 1000));
-		miembros.add(new Cliente("Andrea", "688 945 378", 34, 1, true, 1, 1700));
-		miembros.add(new Cliente("Yolanda", "744 372 987", 22, 6, false, 0, 750));
-		miembros.add(new Cliente("Jesús", "656 472 657", 30, 0, false, 0, 900));
-		miembros.add(new Cliente("Putin", "888 888 888", 46, 0, false, 0, 40000000));
-		miembros.add(new Cliente("Alvaro", "622 438 699", 26, 2, true, 2, 600));
-		miembros.add(new Cliente("Alejandro", "632 829 115", 31, 1, true, 3, 1000));
-		
 		CRUDcliente sepe = new CRUDcliente(miembros);
+		ControllerCliente control = new ControllerCliente();
+		
+		/*
+		 * Una vez hecho eso, creamos unos cuantos clientes y los añadimos a la lista para tener
+		 * ejemnplos con los que probar los métodos que vamos a crear con las expresiones lambda.
+		 */
+		
+		control.precargarClientes(sepe);
 		
 		/*
 		 * Ahora si, tenemos todos nuestros clientes con sus caracteristicas, y queremos
-		 * en nuestro programa querer comprobar si cualifican para recibir distintas prestaciones.
-		 * Pero imagina que cada prestacion tiene requisitos distintos. Vamos a poner los 
-		 * siguientes como ejemplo(aunque no sean realistas):
+		 * en nuestro programa comprobar si cualifican para recibir distintas prestaciones.
+		 * Pero imagina que cada prestacion tiene requisitos distintos. Vamos a poner las 
+		 * siguientes como ejemplo (aunque no sean realistas):
 		 * 
-		 * Subvencion del paro: Estar en paro durante más de un año.
-		 * Subvencion familiar: Tener dos hermanos o más y que la ultima nomina haya sido como máximo de 1000€.
-		 * Subvención dinero para los ricos: No estar en paro y cobrar más de 1200€ al mes.
-		 * Subvencion tercera edad: Tener más de 30 años o alternativamente llamarse Durbán.
+		 * - Subvencion del paro: Estar en paro durante más de un año.
+		 * - Subvencion familiar: Tener dos hermanos o más y que la ultima nomina haya sido como máximo de 1000€.
+		 * - Subvención para los ricos: No estar en paro y cobrar más de 1200€ al mes.
+		 * - Subvencion tercera edad: Tener más de 30 años o alternativamente llamarse Durbán.
 		 * 
 		 * Con lo que conocemos hasta ahora, la mejor forma de hacer estas comprobaciones sería,
-		 * en una nueva clase, hacer cuatro métodos como este, uno para cada subvención:
+		 * al igual que hacemos con los comparator:
+		 * 
+		 * 1º - Creamos una interfaz IComprobador, con un metodo que sea comprobar
+		 * 2º - Como cada subvencion comprueba si el cliente es apto de una forma distinta, para cada
+		 * 		subvencion creariamos una clase, y cada una de ellas implementaría el metodo comprobar
+		 * 		de la manera que necesite, como por ejemplo así para la subvención familiar:
 		 */
 		
 		/*
-		 *	public boolean aptoParaFamiliar (Cliente c) {
+		 *	public boolean comprobar (Cliente c) {
 		 *		boolean resultado = false;
 		 *	
 		 *		if(c.getNumeroHermanos() >= 2 && c.getUltimaNomina() <=1000) {
@@ -83,24 +84,62 @@ public class Principal {
 		 *	}
 		 */
 		
+		// En el paquete "ejemplosnolambda" puedes ver cómo quedaría si hicieramos el programa de esta forma.
+		
 		/*
-		 * Sin embargo, esta clase se podría hacer gigantesca en cuanto se empezara a alargar la lista
-		 * de subvenciones, así que vamos a darle solución con las expresiones Lambda.
+		 * 3º - Finalmente, en controller (o donde sea que tengamos nuestros métodos), creariamos un metodo
+		 * 		al que le pasaríamos un Icomprobador (es decir, un objeto de una clase que implemente esta
+		 * 		interfaz), y un cliente, para que compruebe si el cliente es apto, según los criterios que
+		 * 		le pasemos con el Icomprobador.
+		 *  
+		 * Sin embargo, estaríamos creando una interfaz, además de 4 clases, una para cada subvención.
+		 * El programa se engordaría rápidamente, e imaginad que en vez de solo 4 subvenciones tuvieramos cientas,
+		 * el número de clases sería ingestionable.
 		 * 
-		 * Lo primero que se debe saber, es que estas expresiones funcionan con la ayuda de una serie
-		 * de interfaces, las interfaces funcionales, que YA se encuentran dentro del API de java, por lo 
-		 * que solo vamos a tener que importar la que necesitemos, dependiendo de lo que la función vaya a 
-		 * recibir y devolver. Os dejo aqui el enlace a la pagina correspondiente del API, pero esta 
+		 * Para evitar esto vamos a darle solución con las expresiones Lambda.
+		 * 
+		 * El primer paso para solucionarlo, sería pasar de usar clases, a clases anonimas, es decir, en vez de
+		 * crear una clase para cada subvención en el método que hemos hecho siempre, podemos crear un nuevo
+		 * objeto Icomprobador, y darle código aqui mismo, para especificar que este objeto en concreto, va
+		 * a implementar el metodo comprobar de una forma distinta, sin necesidad de crear una clase.
+		 */
+		
+		Icomprobador comprobadorFamiliar = new Icomprobador() {
+				
+			public boolean comprobar(Cliente c) {
+				boolean resultado = false;
+				 if(c.getNumeroHermanos() >= 2 && c.getUltimaNomina() <=1000) {
+				 		resultado = true;
+				 }
+				 return resultado;
+			}
+		};
+		
+		/*
+		 * Con esta solución ya nos ahorramos la creación de todas las clases que habíamos mencionado,
+		 * pero aun así nos quedaría una gran cantidad de código en el principal, (imagina esta clase anonima de
+		 * arrba para cada una de las subvenciones). El siguiente paso es crear una clase anonima, y darle el código
+		 * con una función lambda.
+		 */
+		
+		/* 
+		 * Lo primero que se debe saber, es que estas expresiones funcionan con la ayuda de interfaces funcionales, 
+		 * es decir, interfaces que SOLO TIENEN UN MÉTODO ABSTRACTO, como la que hemos creado (Icomprobador), por lo que
+		 * al crear un objeto de esta interfaz y darle código con lambda, lo que estamos es dandole el funcionamiento
+		 * al único método que hay dentro.
+		 * 
+		 * Podemos crear nosotros una interfaz de este tipo si lo necesitamos, pero con este fin, el API de Java ya
+		 * cuenta con una serie de interfaces funcionales que solo varían en lo que recibe, y devuelve, el método
+		 * que tiene dentro, por lo que solo vamos a tener que importar la que necesitemos, dependiendo de lo que la función vaya a 
+		 * recibir y devolver. 
+		 * 
+		 * Os dejo aqui el enlace a la pagina correspondiente del API, pero esta 
 		 * parte viene explicada en profundidad en el trabajo de Durbán.
 		 */
 		
 		// https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/function/package-summary.html
 		
 		/*
-		 * Lo básico que necesitais saber de estas interfaces, es que solo tienen UN METODO ABSTRACTO, entonces
-		 * lo que vamos a hacer con las lambda es crear un objeto del tipo de la interfaz, y al mismo tiempo
-		 * darle el código a ese único método abstracto.
-		 * 
 		 * En nuestro caso, vamos a trabajar con la interfaz Predicate, que acepta un objeto como argumento, 
 		 * y devuelve un booleano. Si os fijais esta interfaz esta importada al inicio de la aplicacion.
 		 */
@@ -162,9 +201,8 @@ public class Principal {
 		 *  En este caso, saldrá true si el cliente c lleva más de un año en paro. Y false si no.
 		 */
 		
-		/*
-		 * Ahora escribimos el codigo para las otras subvenciones:
-		 */
+		// Ahora escribimos el codigo para las otras subvenciones:
+		 
 		
 		// Podemos usar && para añadir más condiciones, al igual que en los parentesis de los ifs, por ejemplo.
 		Predicate <Cliente> testerSubvencionFamiliar = (c) -> c.getNumeroHermanos() >= 2 && c.getUltimaNomina() < 1000;
@@ -180,7 +218,6 @@ public class Principal {
 		double nomina;
 		boolean enParo;
 		Cliente clienteAuxiliar = null;
-		ControllerCliente control = new ControllerCliente();
 		
 		do {
 			

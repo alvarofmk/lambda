@@ -149,7 +149,8 @@ public class Principal {
 		 * subvenciones:
 		 */
 		
-		Predicate <Cliente> testerSubvencionParo = (c) -> c.isEnParo() && c.getAniosEnParo() > 1;
+		Predicate <Cliente> testerSubvencionParo = c -> c.isEnParo() && c.getAniosEnParo() > 1;
+		
 		
 		/*
 		 * Lo primero que se pone es la interfaz que hemos escogido, es decir, el tipo (Predicate)
@@ -226,6 +227,11 @@ public class Principal {
 			System.out.println("2. Comprobar requisitos de un cliente para una subvencion");
 			System.out.println("3. Mostrar qué clientes tienen derecho a una subvención");
 			System.out.println("4. Mostrar todos los clientes");
+			
+			//Abajo a partir de este caso están explicados los métodos de la interfaz Predicate
+			System.out.println("5. Comprobar si un cliente tiene derecho a alguna subvención");
+			System.out.println("6. Comprobar si un cliente tiene derecho a todas las subvenciones");
+			System.out.println("7. Comprobar si un cliente ha dejado de tener derecho a una subvención");
 			menu=Leer.datoInt();
 			switch (menu) {
 				case 1:
@@ -316,6 +322,108 @@ public class Principal {
 					break;
 				case 4:
 					control.mostrarClientes(sepe);
+					break;
+					
+					/*
+					 * Como dijimos antes, una interfaz funcional cuenta con un solo método abstracto, que hemos podido
+					 * ver, que en el caso de la interfaz Predicate, es .test()
+					 * 
+					 * Sin embargo, la interfaz puede contar con otros métodos no abstractos que podemos usar.
+					 * En el caso de predicate, contamos con 3 métodos, bastante sencillos:
+					 * 
+					 *  - or()
+					 *  - and()
+					 *  - negate()
+					 *  
+					 * Están explicados en ese orden en los case 5, 6 y 7
+					 */
+
+				case 5:
+					/*
+					 * En este case vamos a comprobar si un cliente tiene derecho a al menos una de las subvenciones, para
+					 * ellos, volvemos a buscar el cliente.
+					 */
+					System.out.println("Indique el nombre del cliente");
+					nombre = Leer.dato();
+					clienteAuxiliar = sepe.encontrarPorNombre(nombre);
+					
+					if(clienteAuxiliar!=null) {
+						/*
+						 * Y ahora, para comprobarlo, vamos a usar el método .or(), a este método hay que pasarle otro
+						 * predicado, y lo que hace es combinar ambos de forma que el resultado sea true en cuanto uno
+						 * de ellos se cumpla, como si los combinaramos con el operador "||".
+						 * 
+						 * Como esto realmente devuelve un predicado, podemos volver a llamar a .or() de nuevo, y asi
+						 * formamos un Predicate que devuelve true si cualquiera de las subvenciones sale positiva.
+						 */
+						control.mostrarUnaPrestacion(testerSubvencionFamiliar
+								.or(testerSubvencionViejos)
+								.or(testerSubvencionRicos)
+								.or(testerSubvencionParo), clienteAuxiliar);
+					}else {
+						System.out.println("No se ha encontrado al cliente");
+					}
+				case 6:
+					/*
+					 * En este case vamos a comprobar si un cliente tiene derecho a todas las subvenciones.
+					 */
+					System.out.println("Indique el nombre del cliente");
+					nombre = Leer.dato();
+					clienteAuxiliar = sepe.encontrarPorNombre(nombre);
+					
+					if(clienteAuxiliar!=null) {
+						/*
+						 * Para comprobarlo, vamos a usar el método .and(), funciona de la misma manera que el método .or(),
+						 * pero en este caso devolverá true solo si se cumplen TODAS las condiciones de todos los predicados.
+						 * Como si los combinaramos con el operador "||".
+						 * 
+						 * También los podemos encadenar.
+						 */
+						control.mostrarUnaPrestacion(testerSubvencionFamiliar
+								.and(testerSubvencionViejos)
+								.and(testerSubvencionRicos)
+								.and(testerSubvencionParo), clienteAuxiliar);
+					}else {
+						System.out.println("No se ha encontrado al cliente");
+					}
+				case 7:
+					/*
+					 * En este caso del switch vamos a comprobar si un cliente NO cualifica para una subvención.
+					 * Para ello usaremos el método .negate()
+					 */
+					System.out.println("Indique el nombre del cliente");
+					nombre = Leer.dato();
+					clienteAuxiliar = sepe.encontrarPorNombre(nombre);
+					
+					if(clienteAuxiliar!=null) {
+						menuSubvenciones();
+						menuSubvenciones = Leer.datoInt();
+						/*
+						 * Después de elegir el cliente y la subvención, tan solo tenemos que llamar al método, este
+						 * devuelve un Predicate que niega al que lo ha llamado, como si pusieramos un "!" delante de
+						 * una condición, por lo que devolverá true si el cliente no cuenta con los requisitos.
+						 */
+						switch (menuSubvenciones) {
+							case 1:
+								control.mostrarUnaPrestacion(testerSubvencionParo.negate(), clienteAuxiliar);
+								break;
+							case 2:
+								control.mostrarUnaPrestacion(testerSubvencionFamiliar.negate(), clienteAuxiliar);
+								break;
+							case 3:
+								control.mostrarUnaPrestacion(testerSubvencionRicos.negate(), clienteAuxiliar);
+								break;
+							case 4:
+								control.mostrarUnaPrestacion(testerSubvencionViejos.negate(), clienteAuxiliar);
+								break;
+							default:
+								System.out.println("Opcion inválida.");
+								break;
+						}
+					}else {
+						System.out.println("No se ha encontrado al cliente");
+					}
+					
 					break;
 				default:
 					System.out.println("Opcion inválida.");
